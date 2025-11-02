@@ -82,7 +82,11 @@ public class StrategyRepository implements IStrategyRepository {
 
     @Override
     public int getRateRange(String key) {
-        return redisService.getValue(Constants.RedisKey.STRATEGY_RATE_RANGE_KEY + key);
+        Integer value = redisService.getValue(Constants.RedisKey.STRATEGY_RATE_RANGE_KEY + key);
+        if (value == null) {
+            throw new RuntimeException("策略范围值不存在，key：" + Constants.RedisKey.STRATEGY_RATE_RANGE_KEY + key);
+        }
+        return value;
     }
 
     @Override
