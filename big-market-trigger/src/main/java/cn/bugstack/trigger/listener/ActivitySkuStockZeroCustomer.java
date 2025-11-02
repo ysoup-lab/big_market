@@ -5,8 +5,8 @@ import cn.bugstack.types.event.BaseEvent;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.TypeReference;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.rabbit.annotation.Queue;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
+import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -19,16 +19,17 @@ import javax.annotation.Resource;
  */
 @Slf4j
 @Component
-public class ActivitySkuStockZeroCustomer {
+@RocketMQMessageListener(topic = "${rocketmq.topic.activity_sku_stock_zero}", consumerGroup = "activity_sku_stock_zero_group")
+public class ActivitySkuStockZeroCustomer implements RocketMQListener<String> {
 
-    @Value("${spring.rabbitmq.topic.activity_sku_stock_zero}")
+    @Value("${rocketmq.topic.activity_sku_stock_zero}")
     private String topic;
 
     @Resource
     private ISkuStock skuStock;
 
-    @RabbitListener(queuesToDeclare = @Queue(value = "activity_sku_stock_zero"))
-    public void listener(String message) {
+    @Override
+    public void onMessage(String message) {
         try {
             log.info("监听活动sku库存消耗为0消息 topic: {} message: {}", topic, message);
             // 转换对象
