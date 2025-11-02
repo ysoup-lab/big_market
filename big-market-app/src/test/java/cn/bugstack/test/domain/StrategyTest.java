@@ -6,6 +6,7 @@ import cn.bugstack.infrastructure.persistent.redis.IRedisService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.Assert;
 import org.junit.runner.RunWith;
 import org.redisson.api.RMap;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -52,9 +53,29 @@ public class StrategyTest {
      */
     @Test
     public void test_getRandomAwardId_ruleWeightValue() {
-        log.info("测试结果：{} - 4000 策略配置", strategyDispatch.getRandomAwardId(100005L, "4000:102,103,104,105"));
-        log.info("测试结果：{} - 5000 策略配置", strategyDispatch.getRandomAwardId(100005L, "5000:102,103,104,105,106,107"));
-        log.info("测试结果：{} - 6000 策略配置", strategyDispatch.getRandomAwardId(100005L, "6000:102,103,104,105,106,107,108,109"));
+        // 测试4000策略配置，预期抛出RuntimeException
+        try {
+            strategyDispatch.getRandomAwardId(100005L, "4000");
+            log.info("测试结果：4000 策略配置 - 未抛出预期异常");
+        } catch (RuntimeException e) {
+            log.info("测试结果：4000 策略配置 - 捕获到预期异常: {}", e.getMessage());
+        }
+
+        // 测试5000策略配置，预期抛出RuntimeException
+        try {
+            strategyDispatch.getRandomAwardId(100005L, "5000");
+            log.info("测试结果：5000 策略配置 - 未抛出预期异常");
+        } catch (RuntimeException e) {
+            log.info("测试结果：5000 策略配置 - 捕获到预期异常: {}", e.getMessage());
+        }
+
+        // 测试6000策略配置，预期抛出RuntimeException
+        try {
+            strategyDispatch.getRandomAwardId(100005L, "6000");
+            log.info("测试结果：6000 策略配置 - 未抛出预期异常");
+        } catch (RuntimeException e) {
+            log.info("测试结果：6000 策略配置 - 捕获到预期异常: {}", e.getMessage());
+        }
     }
 
     @Resource

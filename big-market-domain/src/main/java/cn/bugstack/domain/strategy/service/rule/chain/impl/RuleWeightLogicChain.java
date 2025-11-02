@@ -72,7 +72,7 @@ public class RuleWeightLogicChain extends AbstractLogicChain {
 
         // 4. 权重抽奖
         if (null != nextValue) {
-            Integer awardId = strategyDispatch.getRandomAwardId(strategyId, analyticalValueGroup.get(nextValue));
+            Integer awardId = strategyDispatch.getRandomAwardId(strategyId, String.valueOf(nextValue));
             log.info("抽奖责任链-权重接管 userId: {} strategyId: {} ruleModel: {} awardId: {}", userId, strategyId, ruleModel(), awardId);
             return awardId;
         }

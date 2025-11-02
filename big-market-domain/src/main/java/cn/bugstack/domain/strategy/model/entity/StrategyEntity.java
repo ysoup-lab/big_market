@@ -30,6 +30,14 @@ public class StrategyEntity {
      * 抽奖规则模型 rule_weight,rule_blacklist
      */
     private String ruleModels;
+    /**
+     * 抽奖规则模型
+     */
+    private String ruleModel;
+    /**
+     * 抽奖规则权重
+     */
+    private String ruleWeight;
 
     public String[] ruleModels() {
         if (StringUtils.isBlank(ruleModels)) return null;

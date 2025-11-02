@@ -5,11 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Fuzhengwei bugstack.cn @小傅哥
@@ -20,6 +18,7 @@ import java.util.Map;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Slf4j
 public class StrategyRuleEntity {
 
     /** 抽奖策略ID */
@@ -41,28 +40,35 @@ public class StrategyRuleEntity {
      */
     public Map<String, List<Integer>> getRuleWeightValues() {
         if (!"rule_weight".equals(ruleModel)) return null;
+        log.info("ruleValue: {}", ruleValue);
         String[] ruleValueGroups = ruleValue.split(Constants.SPACE);
+        log.info("ruleValueGroups: {}", Arrays.toString(ruleValueGroups));
         Map<String, List<Integer>> resultMap = new HashMap<>();
         for (String ruleValueGroup : ruleValueGroups) {
             // 检查输入是否为空
             if (ruleValueGroup == null || ruleValueGroup.isEmpty()) {
+                log.warn("Empty ruleValueGroup");
                 return resultMap;
             }
             // 分割字符串以获取键和值
             String[] parts = ruleValueGroup.split(Constants.COLON);
+            log.info("parts: {}", Arrays.toString(parts));
             if (parts.length != 2) {
                 throw new IllegalArgumentException("rule_weight rule_rule invalid input format" + ruleValueGroup);
             }
             // 解析值
             String[] valueStrings = parts[1].split(Constants.SPLIT);
+            log.info("valueStrings: {}", Arrays.toString(valueStrings));
             List<Integer> values = new ArrayList<>();
             for (String valueString : valueStrings) {
                 values.add(Integer.parseInt(valueString));
             }
             // 将键和值放入Map中
-            resultMap.put(ruleValueGroup, values);
+            resultMap.put(parts[0], values);
+            log.info("Added key: {} with values: {}", parts[0], values);
         }
 
+        log.info("resultMap: {}", resultMap);
         return resultMap;
     }
 

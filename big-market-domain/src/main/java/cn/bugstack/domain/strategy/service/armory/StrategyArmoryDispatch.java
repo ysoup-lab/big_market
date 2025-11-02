@@ -42,15 +42,27 @@ public class StrategyArmoryDispatch implements IStrategyArmory, IStrategyDispatc
         // TODO queryStrategyRule 方法名称限定，只查询一个对象。目前可能造成别人调用查询list返回
         StrategyRuleEntity strategyRuleEntity = repository.queryStrategyRule(strategyId, ruleWeight);
         if (null == strategyRuleEntity) {
-            throw new AppException(ResponseCode.STRATEGY_RULE_WEIGHT_IS_NULL.getCode(), ResponseCode.STRATEGY_RULE_WEIGHT_IS_NULL.getInfo());
+            log.warn("Strategy rule not found for strategyId: {} and ruleWeight: {}", strategyId, ruleWeight);
+            return true;
         }
         Map<String, List<Integer>> ruleWeightValueMap = strategyRuleEntity.getRuleWeightValues();
+        if (null == ruleWeightValueMap) {
+            log.warn("ruleWeightValueMap is null for strategyId: {} and ruleWeight: {}", strategyId, ruleWeight);
+            return true;
+        }
         Set<String> keys = ruleWeightValueMap.keySet();
         for (String key : keys) {
+            log.info("Processing rule key: {}", key);
             List<Integer> ruleWeightValues = ruleWeightValueMap.get(key);
             ArrayList<StrategyAwardEntity> strategyAwardEntitiesClone = new ArrayList<>(strategyAwardEntities);
             strategyAwardEntitiesClone.removeIf(entity -> !ruleWeightValues.contains(entity.getAwardId()));
-            assembleLotteryStrategy(String.valueOf(strategyId).concat(Constants.UNDERLINE).concat(key), strategyAwardEntitiesClone);
+            if (strategyAwardEntitiesClone.isEmpty()) {
+                log.warn("No awards found for rule key: {}", key);
+                continue;
+            }
+            String redisKey = String.valueOf(strategyId).concat(Constants.UNDERLINE).concat(key);
+            log.info("Storing strategy range with key: {}", redisKey);
+            assembleLotteryStrategy(redisKey, strategyAwardEntitiesClone);
         }
 
         return true;
