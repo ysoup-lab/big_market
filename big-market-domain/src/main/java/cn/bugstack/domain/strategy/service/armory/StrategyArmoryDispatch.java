@@ -4,10 +4,13 @@ import cn.bugstack.domain.strategy.model.entity.StrategyAwardEntity;
 import cn.bugstack.domain.strategy.model.entity.StrategyEntity;
 import cn.bugstack.domain.strategy.model.entity.StrategyRuleEntity;
 import cn.bugstack.domain.strategy.repository.IStrategyRepository;
+import cn.bugstack.domain.strategy.service.armory.algorithm.ILotteryAlgorithm;
+import cn.bugstack.domain.strategy.service.armory.algorithm.LotteryAlgorithmFactory;
 import cn.bugstack.types.common.Constants;
 import cn.bugstack.types.enums.ResponseCode;
 import cn.bugstack.types.exception.AppException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -26,6 +29,9 @@ public class StrategyArmoryDispatch implements IStrategyArmory, IStrategyDispatc
 
     @Resource
     private IStrategyRepository repository;
+    
+    @Autowired
+    private LotteryAlgorithmFactory lotteryAlgorithmFactory;
 
     private final SecureRandom secureRandom = new SecureRandom();
 
@@ -48,7 +54,8 @@ public class StrategyArmoryDispatch implements IStrategyArmory, IStrategyDispatc
         }
 
         // 3.1 默认装配配置【全量抽奖概率】
-        assembleLotteryStrategy(String.valueOf(strategyId), strategyAwardEntities);
+        String defaultKey = String.valueOf(strategyId);
+        lotteryAlgorithmFactory.getAlgorithm(defaultKey, strategyAwardEntities);
 
         // 3.2 权重策略配置 - 适用于 rule_weight 权重规则配置【4000:102,103,104,105 5000:102,103,104,105,106,107 6000:102,103,104,105,106,107,108,109】
         StrategyEntity strategyEntity = repository.queryStrategyEntityByStrategyId(strategyId);
@@ -66,7 +73,9 @@ public class StrategyArmoryDispatch implements IStrategyArmory, IStrategyDispatc
             List<Integer> ruleWeightValues = ruleWeightValueMap.get(key);
             ArrayList<StrategyAwardEntity> strategyAwardEntitiesClone = new ArrayList<>(strategyAwardEntities);
             strategyAwardEntitiesClone.removeIf(entity -> !ruleWeightValues.contains(entity.getAwardId()));
-            assembleLotteryStrategy(String.valueOf(strategyId).concat(Constants.UNDERLINE).concat(key), strategyAwardEntitiesClone);
+            
+            String weightKey = String.valueOf(strategyId).concat(Constants.UNDERLINE).concat(key);
+            lotteryAlgorithmFactory.getAlgorithm(weightKey, strategyAwardEntitiesClone);
         }
 
         return true;
@@ -78,7 +87,10 @@ public class StrategyArmoryDispatch implements IStrategyArmory, IStrategyDispatc
      * 2. 基于1找到的最小值，0.003 就可以计算出百分比、千分比的整数值。这里就是1000
      * 3. 那么「概率 * 1000」分别占比100个、20个、3个，总计是123个
      * 4. 后续的抽奖就用123作为随机数的范围值，生成的值100个都是0.1概率的奖品、20个是概率0.02的奖品、最后是3个是0.003的奖品。
+     * 
+     * @deprecated 已被LotteryAlgorithmFactory取代
      */
+    @Deprecated
     private void assembleLotteryStrategy(String key, List<StrategyAwardEntity> strategyAwardEntities) {
         // 1. 获取最小概率值
         BigDecimal minAwardRate = strategyAwardEntities.stream()
@@ -178,10 +190,7 @@ public class StrategyArmoryDispatch implements IStrategyArmory, IStrategyDispatc
 
     @Override
     public Integer getRandomAwardId(Long strategyId) {
-        // 分布式部署下，不一定为当前应用做的策略装配。也就是值不一定会保存到本应用，而是分布式应用，所以需要从 Redis 中获取。
-        int rateRange = repository.getRateRange(strategyId);
-        // 通过生成的随机值，获取概率值奖品查找表的结果
-        return repository.getStrategyAwardAssemble(String.valueOf(strategyId), secureRandom.nextInt(rateRange));
+        return getRandomAwardId(String.valueOf(strategyId));
     }
 
     @Override
@@ -192,10 +201,17 @@ public class StrategyArmoryDispatch implements IStrategyArmory, IStrategyDispatc
 
     @Override
     public Integer getRandomAwardId(String key) {
-        // 分布式部署下，不一定为当前应用做的策略装配。也就是值不一定会保存到本应用，而是分布式应用，所以需要从 Redis 中获取。
-        int rateRange = repository.getRateRange(key);
-        // 通过生成的随机值，获取概率值奖品查找表的结果
-        return repository.getStrategyAwardAssemble(key, secureRandom.nextInt(rateRange));
+        // 分布式部署下，不一定为当前应用做的策略装配。也就是值不一定会保存到本应用，而是分布式应用，所以需要从 Redis 中获取策略信息
+        List<StrategyAwardEntity> strategyAwardEntities = repository.getStrategySortedAwards(key);
+        
+        if (strategyAwardEntities == null || strategyAwardEntities.isEmpty()) {
+            log.warn("抽奖策略未初始化，key：{}", key);
+            return null;
+        }
+        
+        // 获取适合的算法并执行抽奖
+        ILotteryAlgorithm algorithm = lotteryAlgorithmFactory.getAlgorithm(key, strategyAwardEntities);
+        return algorithm.getRandomAwardId(key);
     }
 
     @Override

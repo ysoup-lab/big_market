@@ -8,6 +8,7 @@ import cn.bugstack.domain.strategy.model.valobj.RuleWeightVO;
 import cn.bugstack.domain.strategy.model.valobj.StrategyAwardRuleModelVO;
 import cn.bugstack.domain.strategy.model.valobj.StrategyAwardStockKeyVO;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -96,6 +97,28 @@ public interface IStrategyRepository {
      * @param awardId    奖品ID
      */
     void updateStrategyAwardStock(Long strategyId, Integer awardId);
+    
+    /**
+     * 存储策略累计概率
+     * @param key 策略ID或策略ID+权重值
+     * @param sortedAwards 排序后的奖品列表
+     * @param cumulativeRates 累计概率列表
+     */
+    void storeStrategyCumulativeRates(String key, List<StrategyAwardEntity> sortedAwards, List<BigDecimal> cumulativeRates);
+    
+    /**
+     * 获取策略排序后的奖品列表
+     * @param key 策略ID或策略ID+权重值
+     * @return 排序后的奖品列表
+     */
+    List<StrategyAwardEntity> getStrategySortedAwards(String key);
+    
+    /**
+     * 获取策略累计概率列表
+     * @param key 策略ID或策略ID+权重值
+     * @return 累计概率列表
+     */
+    List<BigDecimal> getStrategyCumulativeRates(String key);
 
     /**
      * 根据策略ID+奖品ID的唯一值组合，查询奖品信息
