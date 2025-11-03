@@ -4,7 +4,7 @@ import cn.bugstack.infrastructure.persistent.dao.IRaffleActivityOrderDao;
 import cn.bugstack.infrastructure.persistent.po.RaffleActivityOrder;
 import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.jeasy.random.EasyRandom;
 import org.junit.Test;
 import org.junit.runner.RunWith;
