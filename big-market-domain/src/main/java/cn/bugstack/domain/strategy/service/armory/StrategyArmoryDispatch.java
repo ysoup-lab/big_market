@@ -14,6 +14,10 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author Fuzhengwei bugstack.cn @小傅哥
@@ -178,10 +182,7 @@ public class StrategyArmoryDispatch implements IStrategyArmory, IStrategyDispatc
 
     @Override
     public Integer getRandomAwardId(Long strategyId) {
-        // 分布式部署下，不一定为当前应用做的策略装配。也就是值不一定会保存到本应用，而是分布式应用，所以需要从 Redis 中获取。
-        int rateRange = repository.getRateRange(strategyId);
-        // 通过生成的随机值，获取概率值奖品查找表的结果
-        return repository.getStrategyAwardAssemble(String.valueOf(strategyId), secureRandom.nextInt(rateRange));
+        return getRandomAwardId(String.valueOf(strategyId));
     }
 
     @Override
@@ -192,10 +193,123 @@ public class StrategyArmoryDispatch implements IStrategyArmory, IStrategyDispatc
 
     @Override
     public Integer getRandomAwardId(String key) {
-        // 分布式部署下，不一定为当前应用做的策略装配。也就是值不一定会保存到本应用，而是分布式应用，所以需要从 Redis 中获取。
+        // 1. 获取奖品配置列表
+        List<StrategyAwardEntity> strategyAwardEntities = repository.queryStrategyAwardList(Long.parseLong(key.split(Constants.UNDERLINE)[0]));
+        
+        // 2. 根据奖品数量选择不同的抽奖算法
+        int awardCount = strategyAwardEntities.size();
+        if (awardCount <= 8) {
+            return randomByLoop(key, strategyAwardEntities);
+        } else if (awardCount <= 16) {
+            return randomByBinarySearch(key, strategyAwardEntities);
+        } else {
+            return randomByMultiThread(key, strategyAwardEntities);
+        }
+    }
+    
+    /**
+     * O(n)时间复杂度的抽奖算法，适用于奖品数量较少的情况（<=8）
+     */
+    private Integer randomByLoop(String key, List<StrategyAwardEntity> strategyAwardEntities) {
         int rateRange = repository.getRateRange(key);
-        // 通过生成的随机值，获取概率值奖品查找表的结果
-        return repository.getStrategyAwardAssemble(key, secureRandom.nextInt(rateRange));
+        int randomValue = secureRandom.nextInt(rateRange);
+        
+        int cumulativeProbability = 0;
+        for (StrategyAwardEntity award : strategyAwardEntities) {
+            cumulativeProbability += rateRange * award.getAwardRate().doubleValue();
+            if (randomValue < cumulativeProbability) {
+                return award.getAwardId();
+            }
+        }
+        
+        // 默认返回第一个奖品
+        return strategyAwardEntities.get(0).getAwardId();
+    }
+    
+    /**
+     * O(logn)时间复杂度的抽奖算法，适用于奖品数量中等的情况（<=16）
+     */
+    private Integer randomByBinarySearch(String key, List<StrategyAwardEntity> strategyAwardEntities) {
+        int rateRange = repository.getRateRange(key);
+        int randomValue = secureRandom.nextInt(rateRange);
+        
+        // 构建累积概率数组
+        int[] cumulativeProbabilities = new int[strategyAwardEntities.size()];
+        int cumulative = 0;
+        for (int i = 0; i < strategyAwardEntities.size(); i++) {
+            cumulative += rateRange * strategyAwardEntities.get(i).getAwardRate().doubleValue();
+            cumulativeProbabilities[i] = cumulative;
+        }
+        
+        // 二分查找
+        int low = 0;
+        int high = cumulativeProbabilities.length - 1;
+        while (low < high) {
+            int mid = (low + high) / 2;
+            if (randomValue < cumulativeProbabilities[mid]) {
+                high = mid;
+            } else {
+                low = mid + 1;
+            }
+        }
+        
+        return strategyAwardEntities.get(low).getAwardId();
+    }
+    
+    /**
+     * 多线程计算的抽奖算法，适用于奖品数量较多的情况（>16）
+     */
+    private Integer randomByMultiThread(String key, List<StrategyAwardEntity> strategyAwardEntities) {
+        int rateRange = repository.getRateRange(key);
+        int randomValue = secureRandom.nextInt(rateRange);
+        
+        // 将奖品列表分成多个部分，每个线程处理一部分
+        int threadCount = Runtime.getRuntime().availableProcessors();
+        int batchSize = (strategyAwardEntities.size() + threadCount - 1) / threadCount;
+        
+        // 使用CountDownLatch等待所有线程完成
+        CountDownLatch latch = new CountDownLatch(threadCount);
+        
+        // 用于存储结果
+        AtomicInteger result = new AtomicInteger(-1);
+        
+        // 创建线程池
+        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+        
+        try {
+            for (int i = 0; i < threadCount; i++) {
+                final int startIndex = i * batchSize;
+                final int endIndex = Math.min((i + 1) * batchSize, strategyAwardEntities.size());
+                
+                executorService.submit(() -> {
+                    try {
+                        int cumulativeProbability = 0;
+                        for (int j = startIndex; j < endIndex; j++) {
+                            StrategyAwardEntity award = strategyAwardEntities.get(j);
+                            cumulativeProbability += rateRange * award.getAwardRate().doubleValue();
+                            if (randomValue < cumulativeProbability) {
+                                result.set(award.getAwardId());
+                                // 中断所有线程
+                                executorService.shutdownNow();
+                                return;
+                            }
+                        }
+                    } finally {
+                        latch.countDown();
+                    }
+                });
+            }
+            
+            // 等待所有线程完成
+            latch.await();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } finally {
+            executorService.shutdown();
+        }
+        
+        // 如果没有找到结果，默认返回第一个奖品
+        return result.get() != -1 ? result.get() : strategyAwardEntities.get(0).getAwardId();
     }
 
     @Override
