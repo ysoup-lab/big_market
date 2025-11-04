@@ -38,10 +38,17 @@ public class RuleWeightLogicChain extends AbstractLogicChain {
         log.info("抽奖责任链-权重开始 userId: {} strategyId: {} ruleModel: {}", userId, strategyId, ruleModel());
 
         String ruleValue = repository.queryStrategyRuleValue(strategyId, ruleModel());
+        if (ruleValue == null) {
+            log.info("抽奖责任链-权重规则值为空 userId: {} strategyId: {} ruleModel: {}", userId, strategyId, ruleModel());
+            return next() != null ? next().logic(userId, strategyId) : null;
+        }
 
         // 1. 根据用户ID查询用户抽奖消耗的积分值，本章节我们先写死为固定的值。后续需要从数据库中查询。
         Map<Long, String> analyticalValueGroup = getAnalyticalValue(ruleValue);
-        if (null == analyticalValueGroup || analyticalValueGroup.isEmpty()) return null;
+        if (null == analyticalValueGroup || analyticalValueGroup.isEmpty()) {
+            log.info("抽奖责任链-权重规则解析为空 userId: {} strategyId: {} ruleModel: {}", userId, strategyId, ruleModel());
+            return next() != null ? next().logic(userId, strategyId) : null;
+        }
 
         // 2. 转换Keys值，并默认排序
         List<Long> analyticalSortedKeys = new ArrayList<>(analyticalValueGroup.keySet());
@@ -76,7 +83,7 @@ public class RuleWeightLogicChain extends AbstractLogicChain {
 
         // 5. 过滤其他责任链
         log.info("抽奖责任链-权重放行 userId: {} strategyId: {} ruleModel: {}", userId, strategyId, ruleModel());
-        return next().logic(userId, strategyId);
+        return next() != null ? next().logic(userId, strategyId) : null;
     }
 
     @Override
@@ -85,19 +92,28 @@ public class RuleWeightLogicChain extends AbstractLogicChain {
     }
 
     private Map<Long, String> getAnalyticalValue(String ruleValue) {
+        if (ruleValue == null || ruleValue.isEmpty()) {
+            return Collections.emptyMap();
+        }
         String[] ruleValueGroups = ruleValue.split(Constants.SPACE);
         Map<Long, String> ruleValueMap = new HashMap<>();
         for (String ruleValueKey : ruleValueGroups) {
             // 检查输入是否为空
             if (ruleValueKey == null || ruleValueKey.isEmpty()) {
-                return ruleValueMap;
+                continue;
             }
             // 分割字符串以获取键和值
             String[] parts = ruleValueKey.split(Constants.COLON);
             if (parts.length != 2) {
-                throw new IllegalArgumentException("rule_weight rule_rule invalid input format" + ruleValueKey);
+                log.warn("抽奖责任链-权重规则格式无效 userId: {} ruleValueKey: {}", ruleValueKey);
+                continue;
             }
-            ruleValueMap.put(Long.parseLong(parts[0]), ruleValueKey);
+            try {
+                ruleValueMap.put(Long.parseLong(parts[0]), ruleValueKey);
+            } catch (NumberFormatException e) {
+                log.warn("抽奖责任链-权重规则数值转换失败 userId: {} ruleValueKey: {}", ruleValueKey, e);
+                continue;
+            }
         }
         return ruleValueMap;
     }
