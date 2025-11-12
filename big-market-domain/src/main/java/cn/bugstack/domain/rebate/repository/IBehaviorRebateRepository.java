@@ -17,4 +17,6 @@ public interface IBehaviorRebateRepository {
 
     void saveUserRebateRecord(String userId, List<BehaviorRebateAggregate> behaviorRebateAggregates);
 
+    boolean queryHasUserRebateRecord(String userId, BehaviorTypeVO behaviorTypeVO, String outBusinessNo);
+
 }

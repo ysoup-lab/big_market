@@ -23,4 +23,10 @@
         )
     </insert>
 
+    <select id="queryByUserIdAndBehaviorTypeAndBizId" parameterType="java.lang.String" resultMap="dataMap">
+        select id, user_id, order_id, behavior_type, rebate_desc, rebate_type, rebate_config, biz_id, create_time, update_time
+        from user_behavior_rebate_order
+        where user_id = #{userId} and behavior_type = #{behaviorType} and biz_id = #{bizId}
+    </select>
+
 </mapper>
