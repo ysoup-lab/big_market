@@ -36,4 +36,23 @@ public interface IRaffleActivityService {
      */
     Response<Boolean> calendarSignRebate(String userId);
 
+    /**
+     * 是否签到过接口
+     *
+     * @param userId 用户ID
+     * @return 是否签到过结果
+     */
+    Response<Boolean> isCalendarSignRebate(String userId);
+
+    /**
+     * 查询账户额度接口
+     *
+     * @param userId 用户ID
+     * @param activityId 活动ID
+     * @return 账户额度信息
+     */
+    Response<cn.bugstack.domain.activity.model.entity.ActivityAccountEntity> queryUserActivityAccount(String userId, Long activityId);
+
+
+
 }

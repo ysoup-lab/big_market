@@ -17,4 +17,21 @@ public interface IRaffleRule {
      */
     Map<String, Integer> queryAwardRuleLockCount(String[] treeIds);
 
+    /**
+     * 根据活动ID查询策略ID
+     *
+     * @param activityId 活动ID
+     * @return 策略ID
+     */
+    Long queryStrategyIdByActivityId(Long activityId);
+
+    /**
+     * 根据策略ID和规则模型查询规则值
+     *
+     * @param strategyId 策略ID
+     * @param ruleModel 规则模型
+     * @return 规则值
+     */
+    String queryStrategyRuleValue(Long strategyId, String ruleModel);
+
 }
