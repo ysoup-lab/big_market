@@ -13,4 +13,7 @@ public interface IRaffleActivitySkuDao {
 
     RaffleActivitySku queryActivitySku(Long sku);
 
+    @org.apache.ibatis.annotations.Update("UPDATE raffle_activity_sku SET stock_count_surplus = stock_count_surplus - 1 WHERE sku = #{sku} AND stock_count_surplus > 0")
+    int updateActivitySkuStock(RaffleActivitySku raffleActivitySku);
+
 }

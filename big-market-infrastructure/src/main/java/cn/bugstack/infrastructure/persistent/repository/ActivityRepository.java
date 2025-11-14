@@ -15,11 +15,15 @@ import cn.bugstack.types.common.Constants;
 import cn.bugstack.types.enums.ResponseCode;
 import cn.bugstack.types.exception.AppException;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RBlockingQueue;
+import org.redisson.api.RDelayedQueue;
+import org.redisson.api.RLock;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.annotation.Resource;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Fuzhengwei bugstack.cn @小傅哥
@@ -154,6 +158,59 @@ public class ActivityRepository implements IActivityRepository {
         } finally {
             dbRouter.clear();
         }
+    }
+
+    @Override
+    public void activitySkuStockConsumeSendQueue(Long sku) {
+        String cacheKey = Constants.RedisKey.ACTIVITY_SKU_STOCK_CONSUME_QUEUE_KEY;
+        RBlockingQueue<Long> blockingQueue = redisService.getBlockingQueue(cacheKey);
+        RDelayedQueue<Long> delayedQueue = redisService.getDelayedQueue(blockingQueue);
+        delayedQueue.offer(sku, 3, TimeUnit.SECONDS);
+    }
+
+    @Override
+    public void updateActivitySkuStock(Long sku) {
+        RaffleActivitySku raffleActivitySku = new RaffleActivitySku();
+        raffleActivitySku.setSku(sku);
+        raffleActivitySkuDao.updateActivitySkuStock(raffleActivitySku);
+    }
+
+    @Override
+    public Object getRedisLock(String lockKey) {
+        return redisService.getLock(lockKey);
+    }
+
+    @Override
+    public boolean tryRedisLock(Object lock, long waitTime, long leaseTime) throws InterruptedException {
+        RLock rLock = (RLock) lock;
+        return rLock.tryLock(waitTime, leaseTime, TimeUnit.SECONDS);
+    }
+
+    @Override
+    public void unlockRedisLock(Object lock) {
+        RLock rLock = (RLock) lock;
+        rLock.unlock();
+    }
+
+    @Override
+    public boolean isRedisLockHeldByCurrentThread(Object lock) {
+        RLock rLock = (RLock) lock;
+        return rLock.isHeldByCurrentThread();
+    }
+
+    @Override
+    public String getRedisValue(String key) {
+        return redisService.getValue(key);
+    }
+
+    @Override
+    public void setRedisValue(String key, String value) {
+        redisService.setValue(key, value);
+    }
+
+    @Override
+    public long decrRedisValue(String key) {
+        return redisService.decr(key);
     }
 
 }
