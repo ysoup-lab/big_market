@@ -6,7 +6,8 @@
 
 在大营销系统中，会给大家提供出 HTTP 接口，也会在后续提供 RPC 接口。RPC 就像 Dubbo 这样的框架，它的调用方式是需要对外提供接口描述性Jar，调用方拿到 Jar 包，就像本地调用接口一样，使用 RPC 框架，远程的调用到你的服务上。
 
-那么因为为了让 HTTP 接口、RPC 接口，都能在一个标准下开发，所以本节会增加一个 big-market-api 模块，定义出接口信息和出入参对象。以便于分别可以实现本节所需的 HTTP 接口和后续所需的 RPC 接口。【注意；一般在大厂中，我们只需要定义 RPC 接口即可，因为 HTTP\小程序\APP 的接口，都是通过网关来调用的。网关会把 HTTP 请求转换为对应的 RPC 接口。
+那么因为为了让 HTTP 接口、RPC 接口，都能在一个标准下开发，所以本节会增加一个 big-market-api 模块，定义出接口信息和出入参对象。以便于分别可以实现本节所需的 HTTP 接口和后续所需的 RPC 接口。
+请注意你需求在 big-market-api 模块中定义出接口信息和出入参对象。出入参对象一般是DTO，同时你需要在type模块下定义统一响应Response对象。
 
 ![img](https://article-images.zsxq.com/FkXmHnNYnMl8agoyWiUuxzcx1YE3)
 
