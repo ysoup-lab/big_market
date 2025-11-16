@@ -74,4 +74,9 @@ public abstract class AbstractRaffleActivityPartake implements IRaffleActivityPa
 
     protected abstract UserRaffleOrderEntity buildUserRaffleOrder(String userId, Long activityId, Date currentDate);
 
+    @Override
+    public void updateOrderState(String orderId, String state) {
+        activityRepository.updateUserRaffleOrderState(orderId, state);
+    }
+
 }

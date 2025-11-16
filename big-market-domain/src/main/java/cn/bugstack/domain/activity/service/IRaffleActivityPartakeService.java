@@ -18,4 +18,12 @@ public interface IRaffleActivityPartakeService {
      */
     UserRaffleOrderEntity createOrder(PartakeRaffleActivityEntity partakeRaffleActivityEntity);
 
+    /**
+     * 更新用户抽奖订单状态
+     *
+     * @param orderId 订单ID
+     * @param state   订单状态（create-创建、used-已使用、cancel-已作废）
+     */
+    void updateOrderState(String orderId, String state);
+
 }

@@ -25,28 +25,10 @@ public class AwardService implements IAwardService {
     private SendAwardMessageEvent sendAwardMessageEvent;
 
     @Override
-    public void saveUserAwardRecord(UserAwardRecordEntity userAwardRecordEntity) {
-        // 构建消息对象
-        SendAwardMessageEvent.SendAwardMessage sendAwardMessage = new SendAwardMessageEvent.SendAwardMessage();
-        sendAwardMessage.setUserId(userAwardRecordEntity.getUserId());
-        sendAwardMessage.setAwardId(userAwardRecordEntity.getAwardId());
-        sendAwardMessage.setAwardTitle(userAwardRecordEntity.getAwardTitle());
-
-        BaseEvent.EventMessage<SendAwardMessageEvent.SendAwardMessage> sendAwardMessageEventMessage = sendAwardMessageEvent.buildEventMessage(sendAwardMessage);
-
-        // 构建任务对象
-        TaskEntity taskEntity = new TaskEntity();
-        taskEntity.setUserId(userAwardRecordEntity.getUserId());
-        taskEntity.setTopic(sendAwardMessageEvent.topic());
-        taskEntity.setMessageId(sendAwardMessageEventMessage.getId());
-        taskEntity.setMessage(sendAwardMessageEventMessage);
-        taskEntity.setState(TaskStateVO.create);
-
-        // 构建聚合对象
-        UserAwardRecordAggregate userAwardRecordAggregate = UserAwardRecordAggregate.builder()
-                .taskEntity(taskEntity)
-                .userAwardRecordEntity(userAwardRecordEntity)
-                .build();
+    public void saveUserAwardRecord(UserAwardRecordAggregate userAwardRecordAggregate) {
+        // 从聚合对象中获取用户中奖记录和任务对象
+        UserAwardRecordEntity userAwardRecordEntity = userAwardRecordAggregate.getUserAwardRecordEntity();
+        TaskEntity taskEntity = userAwardRecordAggregate.getTaskEntity();
 
         // 存储聚合对象 - 一个事务下，用户的中奖记录
         awardRepository.saveUserAwardRecord(userAwardRecordAggregate);

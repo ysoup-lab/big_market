@@ -81,6 +81,15 @@ public class ActivityRepository implements IActivityRepository {
     }
 
     @Override
+    public void updateUserRaffleOrderState(String orderId, String state) {
+        UserRaffleOrder userRaffleOrder = UserRaffleOrder.builder()
+                .orderId(orderId)
+                .orderState(state)
+                .build();
+        userRaffleOrderDao.updateOrderState(userRaffleOrder);
+    }
+
+    @Override
     public ActivityEntity queryRaffleActivityByActivityId(Long activityId) {
         // 优先从缓存获取
         String cacheKey = Constants.RedisKey.ACTIVITY_KEY + activityId;
