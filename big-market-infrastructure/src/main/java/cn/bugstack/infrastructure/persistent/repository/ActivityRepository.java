@@ -6,6 +6,7 @@ import cn.bugstack.domain.activity.model.entity.ActivityCountEntity;
 import cn.bugstack.domain.activity.model.entity.ActivityEntity;
 import cn.bugstack.domain.activity.model.entity.ActivityOrderEntity;
 import cn.bugstack.domain.activity.model.entity.ActivitySkuEntity;
+import cn.bugstack.domain.activity.model.entity.UserRaffleOrderEntity;
 import cn.bugstack.domain.activity.model.valobj.ActivitySkuStockKeyVO;
 import cn.bugstack.domain.activity.model.valobj.ActivityStateVO;
 import cn.bugstack.domain.activity.repository.IActivityRepository;
@@ -234,6 +235,55 @@ public class ActivityRepository implements IActivityRepository {
     @Override
     public void clearActivitySkuStock(Long sku) {
         raffleActivitySkuDao.clearActivitySkuStock(sku);
+    }
+
+    @Override
+    public boolean deductActivityAccountQuota(ActivityAccountEntity activityAccountEntity) {
+        String userId = activityAccountEntity.getUserId();
+        Long activityId = activityAccountEntity.getActivityId();
+
+        // 构建数据库实体
+        RaffleActivityAccount raffleActivityAccount = new RaffleActivityAccount();
+        raffleActivityAccount.setUserId(userId);
+        raffleActivityAccount.setActivityId(activityId);
+        raffleActivityAccount.setTotalCount(activityAccountEntity.getTotalCount());
+        raffleActivityAccount.setTotalCountSurplus(activityAccountEntity.getTotalCountSurplus());
+        raffleActivityAccount.setDayCount(activityAccountEntity.getDayCount());
+        raffleActivityAccount.setDayCountSurplus(activityAccountEntity.getDayCountSurplus());
+        raffleActivityAccount.setMonthCount(activityAccountEntity.getMonthCount());
+        raffleActivityAccount.setMonthCountSurplus(activityAccountEntity.getMonthCountSurplus());
+
+        // 设置分库分表路由键
+        dbRouter.doRouter(userId);
+
+        try {
+            // 执行扣减
+            int updateCount = raffleActivityAccountDao.updateAccountQuota(raffleActivityAccount);
+            return updateCount > 0;
+        } finally {
+            // 清除路由键
+            dbRouter.clear();
+        }
+    }
+
+    @Override
+    public void saveUserRaffleOrder(UserRaffleOrderEntity userRaffleOrderEntity) {
+        // 构建数据库实体
+        RaffleActivityOrder raffleActivityOrder = new RaffleActivityOrder();
+        raffleActivityOrder.setOrderId(userRaffleOrderEntity.getOrderId());
+        raffleActivityOrder.setUserId(userRaffleOrderEntity.getUserId());
+        raffleActivityOrder.setActivityId(userRaffleOrderEntity.getActivityId());
+        raffleActivityOrder.setActivityName(userRaffleOrderEntity.getActivityName());
+        raffleActivityOrder.setSku(userRaffleOrderEntity.getSku());
+        raffleActivityOrder.setStrategyId(userRaffleOrderEntity.getStrategyId());
+        raffleActivityOrder.setTotalCount(userRaffleOrderEntity.getTotalCount());
+        raffleActivityOrder.setDayCount(userRaffleOrderEntity.getDayCount());
+        raffleActivityOrder.setMonthCount(userRaffleOrderEntity.getMonthCount());
+        raffleActivityOrder.setState(userRaffleOrderEntity.getState());
+        raffleActivityOrder.setOutBusinessNo(userRaffleOrderEntity.getOutBusinessNo());
+
+        // 保存订单
+        raffleActivityOrderDao.insert(raffleActivityOrder);
     }
 
 }
