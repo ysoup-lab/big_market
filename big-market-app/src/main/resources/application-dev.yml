@@ -1,5 +1,5 @@
 server:
-  port: 8091
+  port: 8092
   tomcat:
     threads:
       max: 200        # 设定处理客户请求的线程的最大数目，决定了服务器可以同时响应客户请求的数,默认200
@@ -103,7 +103,7 @@ redis:
   sdk:
     config:
       host: 127.0.0.1
-      port: 16379
+      port: 6379
       pool-size: 10
       min-idle-size: 5
       idle-timeout: 30000
