@@ -29,7 +29,7 @@ import java.util.Date;
  * @create 2024-04-13 09:42
  */
 @Slf4j
-@RestController()
+@RestController("triggerRaffleActivityController")
 @CrossOrigin("${app.config.cross-origin}")
 @RequestMapping("/api/${app.config.api-version}/raffle/activity/")
 public class RaffleActivityController implements IRaffleActivityService {

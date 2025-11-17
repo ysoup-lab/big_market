@@ -122,4 +122,16 @@ public class BehaviorRebateRepository implements IBehaviorRebateRepository {
 
     }
 
+    @Override
+    public boolean queryHasUserRebateRecord(String userId, BehaviorTypeVO behaviorTypeVO, String outBusinessNo) {
+        try {
+            dbRouter.doRouter(userId);
+            // 根据用户ID、行为类型和业务ID查询是否有记录
+            UserBehaviorRebateOrder userBehaviorRebateOrder = userBehaviorRebateOrderDao.queryByUserIdAndBehaviorTypeAndBizId(userId, behaviorTypeVO.getCode(), outBusinessNo);
+            return userBehaviorRebateOrder != null;
+        } finally {
+            dbRouter.clear();
+        }
+    }
+
 }

@@ -15,4 +15,6 @@ public interface IUserBehaviorRebateOrderDao {
 
     void insert(UserBehaviorRebateOrder userBehaviorRebateOrder);
 
+    UserBehaviorRebateOrder queryByUserIdAndBehaviorTypeAndBizId(String userId, String behaviorType, String bizId);
+
 }
