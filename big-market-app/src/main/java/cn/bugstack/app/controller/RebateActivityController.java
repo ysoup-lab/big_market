@@ -25,13 +25,13 @@ import java.util.List;
 
 /**
  * @author Fuzhengwei bugstack.cn @小傅哥
- * @description 抽奖活动控制层
+ * @description 返利活动控制层
  * @create 2024-04-30 16:14
  */
 @Slf4j
 @RestController
 @RequestMapping("/api/activity")
-public class RaffleActivityController {
+public class RebateActivityController {
 
     @Value("${spring.rabbitmq.topic.send_rebate}")
     private String topic;
