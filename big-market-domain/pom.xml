@@ -38,6 +38,32 @@
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
         </dependency>
+        <!-- Spring 事务依赖 -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <!-- Spring Context依赖 -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <!-- JUnit测试依赖 -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- Mockito测试依赖 -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>3.12.4</version>
+            <scope>test</scope>
+        </dependency>
         <!-- 系统模块 -->
         <dependency>
             <groupId>cn.bugstack</groupId>

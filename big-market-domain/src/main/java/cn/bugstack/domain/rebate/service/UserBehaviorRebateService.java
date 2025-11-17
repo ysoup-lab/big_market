@@ -8,7 +8,7 @@ import cn.bugstack.domain.rebate.model.valobj.BehaviorTypeVO;
 import cn.bugstack.domain.rebate.model.valobj.RebateTypeVO;
 import cn.bugstack.domain.rebate.repository.IRebateRepository;
 import cn.bugstack.domain.task.model.entity.TaskEntity;
-import cn.bugstack.domain.task.model.valobj.TaskStateVO;
+
 import com.alibaba.fastjson.JSON;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
@@ -36,7 +36,6 @@ public class UserBehaviorRebateService implements IUserBehaviorRebateService {
     }
     
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public String createUserBehaviorRebateOrder(String userId, String behaviorType, String bizId) {
         // 1. 构建用户行为返利订单实体
         UserBehaviorRebateOrderEntity userBehaviorRebateOrderEntity = UserBehaviorRebateOrderEntity.builder()
@@ -62,7 +61,6 @@ public class UserBehaviorRebateService implements IUserBehaviorRebateService {
         CreateRebateOrderAggregate createRebateOrderAggregate = CreateRebateOrderAggregate.builder()
                 .userId(userId)
                 .userBehaviorRebateOrderEntity(userBehaviorRebateOrderEntity)
-                .taskEntity(taskEntity)
                 .build();
         
         // 4. 保存订单和任务（事务处理）
@@ -72,15 +70,14 @@ public class UserBehaviorRebateService implements IUserBehaviorRebateService {
         BaseEvent.EventMessage<UserBehaviorRebateOrderEntity> messageEvent = userBehaviorRebateMessageEvent.buildEventMessage(userBehaviorRebateOrderEntity);
         
         // 6. 构建任务实体
-        TaskEntity taskEntity = new TaskEntity();
-        taskEntity.setUserId(userBehaviorRebateOrderEntity.getUserId());
-        taskEntity.setTopic(userBehaviorRebateMessageEvent.topic());
-        taskEntity.setMessageId(messageEvent.getId());
-        taskEntity.setMessage(JSON.toJSONString(messageEvent.getData()));
-        taskEntity.setState(TaskStateVO.create);
+        TaskEntity newTaskEntity = new TaskEntity();
+        newTaskEntity.setUserId(userBehaviorRebateOrderEntity.getUserId());
+        newTaskEntity.setTopic(userBehaviorRebateMessageEvent.topic());
+        newTaskEntity.setMessageId(messageEvent.getId());
+        newTaskEntity.setMessage(JSON.toJSONString(messageEvent.getData()));
         
         // 7. 保存任务
-        rebateRepository.saveTask(taskEntity);
+        rebateRepository.saveTask(newTaskEntity);
         
         return userBehaviorRebateOrderEntity.getOrderId();
     }
