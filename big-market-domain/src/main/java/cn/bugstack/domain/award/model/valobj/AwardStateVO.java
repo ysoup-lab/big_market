@@ -10,6 +10,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
+@NoArgsConstructor
 public enum AwardStateVO {
 
     create("create", "创建"),
