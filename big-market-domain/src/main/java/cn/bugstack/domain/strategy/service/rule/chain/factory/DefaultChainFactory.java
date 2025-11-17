@@ -85,6 +85,7 @@ public class DefaultChainFactory {
 
     @Getter
     @AllArgsConstructor
+    @NoArgsConstructor
     public enum LogicModel {
 
         RULE_DEFAULT("rule_default", "默认抽奖"),

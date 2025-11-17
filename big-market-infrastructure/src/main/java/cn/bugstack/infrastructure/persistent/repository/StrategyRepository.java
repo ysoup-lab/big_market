@@ -317,6 +317,24 @@ public class StrategyRepository implements IStrategyRepository {
     }
 
     @Override
+    public Long queryActivityIdByStrategyId(Long strategyId) {
+        return raffleActivityDao.queryActivityIdByStrategyId(strategyId);
+    }
+
+    @Override
+    public Long queryStrategyIdByActivityId(Long activityId) {
+        return raffleActivityDao.queryStrategyIdByActivityId(activityId);
+    }
+
+    @Override
+    public String queryStrategyRuleValue(Long strategyId, String ruleModel) {
+        StrategyRule strategyRuleReq = new StrategyRule();
+        strategyRuleReq.setStrategyId(strategyId);
+        strategyRuleReq.setRuleModel(ruleModel);
+        return strategyRuleDao.queryStrategyRuleValue(strategyRuleReq);
+    }
+
+    @Override
     public Integer queryTodayUserRaffleCount(String userId, Long strategyId) {
         // 活动ID
         Long activityId = raffleActivityDao.queryActivityIdByStrategyId(strategyId);

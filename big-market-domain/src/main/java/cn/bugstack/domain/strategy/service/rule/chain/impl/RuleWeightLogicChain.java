@@ -1,5 +1,6 @@
 package cn.bugstack.domain.strategy.service.rule.chain.impl;
 
+import cn.bugstack.domain.activity.repository.IActivityRepository;
 import cn.bugstack.domain.strategy.repository.IStrategyRepository;
 import cn.bugstack.domain.strategy.service.armory.IStrategyDispatch;
 import cn.bugstack.domain.strategy.service.rule.chain.AbstractLogicChain;
@@ -29,8 +30,10 @@ public class RuleWeightLogicChain extends AbstractLogicChain {
     @Resource
     protected IStrategyDispatch strategyDispatch;
 
-    // 根据用户ID查询用户抽奖消耗的积分值，本章节我们先写死为固定的值。后续需要从数据库中查询。
-    public Long userScore = 0L;
+    @Resource
+    private IActivityRepository activityRepository;
+
+
 
     /**
      * 权重责任链过滤；
@@ -54,23 +57,31 @@ public class RuleWeightLogicChain extends AbstractLogicChain {
         List<Long> analyticalSortedKeys = new ArrayList<>(analyticalValueGroup.keySet());
         Collections.sort(analyticalSortedKeys);
 
-        // 3. 找出最小符合的值，也就是【4500 积分，能找到 4000:102,103,104,105】、【5000 积分，能找到 5000:102,103,104,105,106,107】
+        // 3. 查询用户在当前活动下的抽奖次数
+        // 注意：这里需要根据实际情况传递activityId，可能需要从strategyId关联查询到activityId
+        // 假设strategyId和activityId是一一对应的，可以通过repository查询
+        Long activityId = repository.queryActivityIdByStrategyId(strategyId);
+        cn.bugstack.domain.activity.model.entity.ActivityAccountEntity activityAccount = activityRepository.queryActivityAccountByUserId(userId, activityId);
+        // 总抽奖次数 = 总次数 - 剩余次数
+        long totalRaffleCount = activityAccount.getTotalCount() - activityAccount.getTotalCountSurplus();
+
+        // 4. 找出最小符合的值，也就是【4000次，能找到 4000:102,103,104,105】、【5000次，能找到 5000:102,103,104,105,106,107】
         /* 找到最后一个符合的值[如用户传了一个 5900 应该返回正确结果为 5000]，如果使用 Lambda findFirst 需要注意使用 sorted 反转结果
          *   Long nextValue = null;
          *         for (Long analyticalSortedKeyValue : analyticalSortedKeys) {
-         *             if (userScore >= analyticalSortedKeyValue){
+         *             if (totalRaffleCount >= analyticalSortedKeyValue){
          *                 nextValue = analyticalSortedKeyValue;
          *             }
          *         }
          * 星球伙伴 @慢慢来 ID 6267 提供
          * Long nextValue = analyticalSortedKeys.stream()
-         *      .filter(key -> userScore >= key)
+         *      .filter(key -> totalRaffleCount >= key)
          *      .max(Comparator.naturalOrder())
          *      .orElse(null);
          */
         Long nextValue = analyticalSortedKeys.stream()
                 .sorted(Comparator.reverseOrder())
-                .filter(analyticalSortedKeyValue -> userScore >= analyticalSortedKeyValue)
+                .filter(analyticalSortedKeyValue -> totalRaffleCount >= analyticalSortedKeyValue)
                 .findFirst()
                 .orElse(null);
 

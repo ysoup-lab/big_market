@@ -109,6 +109,22 @@ public interface IStrategyRepository {
     Long queryStrategyIdByActivityId(Long activityId);
 
     /**
+     * 查询活动ID
+     *
+     * @param strategyId 策略ID
+     * @return 活动ID
+     */
+    Long queryActivityIdByStrategyId(Long strategyId);
+
+    /**
+     * 根据活动ID查询策略ID
+     *
+     * @param activityId 活动ID
+     * @return 策略ID
+     */
+    Long queryStrategyIdByActivityId(Long activityId);
+
+    /**
      * 查询用户抽奖次数 - 当天的；策略ID:活动ID 1:1 的配置，可以直接用 strategyId 查询。
      *
      * @param userId     用户ID
@@ -116,6 +132,15 @@ public interface IStrategyRepository {
      * @return 用户今日参与次数
      */
     Integer queryTodayUserRaffleCount(String userId, Long strategyId);
+
+    /**
+     * 查询策略规则值
+     *
+     * @param strategyId 策略ID
+     * @param ruleModel 规则模型
+     * @return 规则值
+     */
+    String queryStrategyRuleValue(Long strategyId, String ruleModel);
 
     /**
      * 根据规则树ID集合查询奖品中加锁数量的配置「部分奖品需要抽奖N次解锁」

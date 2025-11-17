@@ -33,6 +33,7 @@ public class DefaultActivityChainFactory {
 
     @Getter
     @AllArgsConstructor
+    @NoArgsConstructor
     public enum ActionModel {
 
         activity_base_action("activity_base_action", "活动的库存、时间校验"),

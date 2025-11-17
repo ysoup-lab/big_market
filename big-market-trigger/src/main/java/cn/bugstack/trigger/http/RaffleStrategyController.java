@@ -179,4 +179,61 @@ public class RaffleStrategyController implements IRaffleStrategyService {
         }
     }
 
+    /**
+     * 查询权重配置接口
+     * <a href="http://localhost:8091/api/v1/raffle/strategy/query_raffle_strategy_rule_weight">/api/v1/raffle/strategy/query_raffle_strategy_rule_weight</a>
+     *
+     * @param activityId 活动ID
+     * @return 权重配置信息
+     */
+    @RequestMapping(value = "query_raffle_strategy_rule_weight", method = RequestMethod.GET)
+    @Override
+    public Response<java.util.Map<String, Object>> queryRaffleStrategyRuleWeight(@RequestParam Long activityId) {
+        try {
+            log.info("查询权重配置开始 activityId: {}", activityId);
+            // 1. 根据activityId查询strategyId
+            Long strategyId = raffleRule.queryStrategyIdByActivityId(activityId);
+            // 2. 查询权重规则值
+            String ruleValue = raffleRule.queryStrategyRuleValue(strategyId, "rule_weight");
+            // 3. 解析权重规则值并封装为前端需要的格式
+            java.util.Map<String, Object> result = new java.util.HashMap<>();
+            if (StringUtils.isNotBlank(ruleValue)) {
+                String[] ruleValueGroups = ruleValue.split(" ");
+                java.util.List<java.util.Map<String, Object>> weightRules = new java.util.ArrayList<>();
+                for (String ruleValueGroup : ruleValueGroups) {
+                    String[] parts = ruleValueGroup.split(":");
+                    if (parts.length == 2) {
+                        java.util.Map<String, Object> weightRule = new java.util.HashMap<>();
+                        weightRule.put("threshold", Long.parseLong(parts[0]));
+                        // 解析奖品ID列表
+                        String[] awardIds = parts[1].split(",");
+                        java.util.List<Integer> awardIdList = new java.util.ArrayList<>();
+                        for (String awardId : awardIds) {
+                            awardIdList.add(Integer.parseInt(awardId));
+                        }
+                        weightRule.put("awardIds", awardIdList);
+                        weightRules.add(weightRule);
+                    }
+                }
+                // 按阈值升序排序
+                weightRules.sort((a, b) -> ((Long) a.get("threshold")).compareTo((Long) b.get("threshold")));
+                result.put("weightRules", weightRules);
+            }
+            // 4. 返回结果
+            Response<java.util.Map<String, Object>> response = Response.<java.util.Map<String, Object>>builder()
+                    .code(ResponseCode.SUCCESS.getCode())
+                    .info(ResponseCode.SUCCESS.getInfo())
+                    .data(result)
+                    .build();
+            log.info("查询权重配置完成 activityId: {} response: {}", activityId, JSON.toJSONString(response));
+            return response;
+        } catch (Exception e) {
+            log.error("查询权重配置失败 activityId：{}", activityId, e);
+            return Response.<java.util.Map<String, Object>>builder()
+                    .code(ResponseCode.UN_ERROR.getCode())
+                    .info(ResponseCode.UN_ERROR.getInfo())
+                    .build();
+        }
+    }
+
 }

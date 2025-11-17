@@ -39,4 +39,12 @@ public interface IRaffleStrategyService {
      */
     Response<RaffleStrategyResponseDTO> randomRaffle(RaffleStrategyRequestDTO requestDTO);
 
+    /**
+     * 查询权重配置接口
+     *
+     * @param activityId 活动ID
+     * @return 权重配置信息
+     */
+    Response<java.util.Map<String, Object>> queryRaffleStrategyRuleWeight(Long activityId);
+
 }

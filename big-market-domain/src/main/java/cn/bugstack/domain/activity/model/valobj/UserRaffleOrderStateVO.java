@@ -10,6 +10,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
+@NoArgsConstructor
 public enum UserRaffleOrderStateVO {
 
     create("create", "创建"),
