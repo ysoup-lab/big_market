@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="cn.bugstack.infrastructure.persistent.dao.IUserBehaviorRebateOrderDao">
+    
+    <resultMap id="dataMap" type="cn.bugstack.infrastructure.persistent.po.UserBehaviorRebateOrder">
+        <id column="id" property="id" jdbcType="INTEGER" />
+        <result column="user_id" property="userId" jdbcType="VARCHAR" />
+        <result column="order_id" property="orderId" jdbcType="VARCHAR" />
+        <result column="behavior_type" property="behaviorType" jdbcType="VARCHAR" />
+        <result column="rebate_desc" property="rebateDesc" jdbcType="VARCHAR" />
+        <result column="rebate_type" property="rebateType" jdbcType="VARCHAR" />
+        <result column="rebate_config" property="rebateConfig" jdbcType="VARCHAR" />
+        <result column="biz_id" property="bizId" jdbcType="VARCHAR" />
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    </resultMap>
+    
+    <insert id="insert" parameterType="cn.bugstack.infrastructure.persistent.po.UserBehaviorRebateOrder" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_behavior_rebate_order_000 (
+            user_id, order_id, behavior_type, rebate_desc, rebate_type, rebate_config, biz_id, create_time, update_time
+        ) VALUES (
+            #{userId}, #{orderId}, #{behaviorType}, #{rebateDesc}, #{rebateType}, #{rebateConfig}, #{bizId}, NOW(), NOW()
+        )
+    </insert>
+    
+    <select id="queryByOrderId" parameterType="java.lang.String" resultMap="dataMap">
+        SELECT id, user_id, order_id, behavior_type, rebate_desc, rebate_type, rebate_config, biz_id, create_time, update_time
+        FROM user_behavior_rebate_order_000
+        WHERE order_id = #{orderId}
+    </select>
+    
+    <select id="queryByBizId" parameterType="java.lang.String" resultMap="dataMap">
+        SELECT id, user_id, order_id, behavior_type, rebate_desc, rebate_type, rebate_config, biz_id, create_time, update_time
+        FROM user_behavior_rebate_order_000
+        WHERE biz_id = #{bizId}
+    </select>
+    
+</mapper>
