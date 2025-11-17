@@ -52,4 +52,9 @@ public class AwardService implements IAwardService {
         awardRepository.saveUserAwardRecord(userAwardRecordAggregate);
     }
 
+    @Override
+    public cn.bugstack.domain.award.model.entity.AwardEntity queryAwardInfo(Integer awardId) {
+        return awardRepository.queryAwardInfo(awardId);
+    }
+
 }

@@ -1,6 +1,7 @@
 package cn.bugstack.domain.award.repository;
 
 import cn.bugstack.domain.award.model.aggregate.UserAwardRecordAggregate;
+import cn.bugstack.domain.award.model.entity.AwardEntity;
 
 /**
  * @author Fuzhengwei bugstack.cn @小傅哥
@@ -10,5 +11,7 @@ import cn.bugstack.domain.award.model.aggregate.UserAwardRecordAggregate;
 public interface IAwardRepository {
 
     void saveUserAwardRecord(UserAwardRecordAggregate userAwardRecordAggregate);
+
+    AwardEntity queryAwardInfo(Integer awardId);
 
 }

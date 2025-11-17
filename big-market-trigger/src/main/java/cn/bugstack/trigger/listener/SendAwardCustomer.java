@@ -1,9 +1,9 @@
 package cn.bugstack.trigger.listener;
 
 import cn.bugstack.domain.award.event.SendAwardMessageEvent;
+import cn.bugstack.domain.award.model.entity.AwardEntity;
+import cn.bugstack.domain.award.service.IAwardService;
 import cn.bugstack.domain.credit.service.IUserCreditService;
-import cn.bugstack.infrastructure.persistent.dao.IAwardDao;
-import cn.bugstack.infrastructure.persistent.po.Award;
 import cn.bugstack.types.event.BaseEvent;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.TypeReference;
@@ -28,7 +28,7 @@ public class SendAwardCustomer {
     private String topic;
 
     @Resource
-    private IAwardDao awardDao;
+private IAwardService awardService;
 
     @Resource
     private IUserCreditService userCreditService;
@@ -43,11 +43,11 @@ public class SendAwardCustomer {
             SendAwardMessageEvent.SendAwardMessage sendAwardMessage = eventMessage.getData();
 
             // 2. 查询奖品信息
-            Award award = awardDao.queryAwardInfo(sendAwardMessage.getAwardId());
-            if (award == null) {
-                log.error("监听用户奖品发送消息，奖品不存在 awardId: {} topic: {} message: {}", sendAwardMessage.getAwardId(), topic, message);
-                return;
-            }
+AwardEntity award = awardService.queryAwardInfo(sendAwardMessage.getAwardId());
+if (award == null) {
+    log.error("监听用户奖品发送消息，奖品不存在 awardId: {} topic: {} message: {}", sendAwardMessage.getAwardId(), topic, message);
+    return;
+}
 
             // 3. 判断奖品类型，处理积分奖品
             if ("user_credit_random".equals(award.getAwardKey()) || "user_credit_blacklist".equals(award.getAwardKey())) {
