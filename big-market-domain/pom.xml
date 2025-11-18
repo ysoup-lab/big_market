@@ -43,6 +43,11 @@
             <groupId>cn.bugstack</groupId>
             <artifactId>big-market-types</artifactId>
         </dependency>
+        <!-- Spring 事务管理 -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

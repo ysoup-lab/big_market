@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.bugstack.infrastructure.persistent.dao.IUserCreditAccountDao">
+
+    <resultMap id="BaseResultMap" type="cn.bugstack.infrastructure.persistent.po.UserCreditAccount">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="user_id" jdbcType="VARCHAR" property="userId"/>
+        <result column="total_amount" jdbcType="DECIMAL" property="totalAmount"/>
+        <result column="available_amount" jdbcType="DECIMAL" property="availableAmount"/>
+        <result column="account_status" jdbcType="VARCHAR" property="accountStatus"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+    </resultMap>
+
+    <select id="queryUserCreditAccount" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+            id,
+            user_id,
+            total_amount,
+            available_amount,
+            account_status,
+            create_time,
+            update_time
+        from user_credit_account
+        where user_id = #{userId}
+    </select>
+
+    <insert id="insertUserCreditAccount" parameterType="cn.bugstack.infrastructure.persistent.po.UserCreditAccount" useGeneratedKeys="true" keyProperty="id">
+        insert into user_credit_account (
+            user_id,
+            total_amount,
+            available_amount,
+            account_status,
+            create_time,
+            update_time
+        )
+        values (
+            #{userId},
+            #{totalAmount},
+            #{availableAmount},
+            #{accountStatus},
+            now(),
+            now()
+        )
+    </insert>
+
+    <update id="updateUserCreditAccount" parameterType="cn.bugstack.infrastructure.persistent.po.UserCreditAccount">
+        update user_credit_account
+        <set>
+            <if test="totalAmount != null">
+                total_amount = #{totalAmount},
+            </if>
+            <if test="availableAmount != null">
+                available_amount = #{availableAmount},
+            </if>
+            <if test="accountStatus != null">
+                account_status = #{accountStatus},
+            </if>
+            update_time = now()
+        </set>
+        where id = #{id}
+    </update>
+
+    <update id="increaseUserCredit" parameterType="java.util.Map">
+        update user_credit_account
+        set total_amount = total_amount + #{amount},
+            available_amount = available_amount + #{amount},
+            update_time = now()
+        where user_id = #{userId}
+    </update>
+
+</mapper>

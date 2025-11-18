@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.bugstack.infrastructure.persistent.dao.IAwardDao">
+
+    <resultMap id="BaseResultMap" type="cn.bugstack.infrastructure.persistent.po.Award">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="award_id" jdbcType="INTEGER" property="awardId"/>
+        <result column="award_key" jdbcType="VARCHAR" property="awardKey"/>
+        <result column="award_config" jdbcType="VARCHAR" property="awardConfig"/>
+        <result column="award_desc" jdbcType="VARCHAR" property="awardDesc"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+    </resultMap>
+
+    <select id="queryAwardInfo" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select
+            id,
+            award_id,
+            award_key,
+            award_config,
+            award_desc,
+            create_time,
+            update_time
+        from award
+        where award_id = #{awardId}
+    </select>
+
+</mapper>

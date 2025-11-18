@@ -5,9 +5,11 @@ import cn.bugstack.domain.award.model.entity.TaskEntity;
 import cn.bugstack.domain.award.model.entity.UserAwardRecordEntity;
 import cn.bugstack.domain.award.repository.IAwardRepository;
 import cn.bugstack.infrastructure.event.EventPublisher;
+import cn.bugstack.infrastructure.persistent.dao.IAwardDao;
 import cn.bugstack.infrastructure.persistent.dao.ITaskDao;
 import cn.bugstack.infrastructure.persistent.dao.IUserAwardRecordDao;
 import cn.bugstack.infrastructure.persistent.dao.IUserRaffleOrderDao;
+import cn.bugstack.infrastructure.persistent.po.Award;
 import cn.bugstack.infrastructure.persistent.po.Task;
 import cn.bugstack.infrastructure.persistent.po.UserAwardRecord;
 import cn.bugstack.infrastructure.persistent.po.UserRaffleOrder;
@@ -43,6 +45,8 @@ public class AwardRepository implements IAwardRepository {
     private TransactionTemplate transactionTemplate;
     @Resource
     private EventPublisher eventPublisher;
+    @Resource
+    private IAwardDao awardDao;
 
     @Override
     public void saveUserAwardRecord(UserAwardRecordAggregate userAwardRecordAggregate) {
@@ -110,6 +114,23 @@ public class AwardRepository implements IAwardRepository {
             taskDao.updateTaskSendMessageFail(task);
         }
 
+    }
+
+    @Override
+    public cn.bugstack.domain.award.model.entity.AwardEntity queryAwardInfo(Integer awardId) {
+        Award award = awardDao.queryAwardInfo(awardId);
+        if (award == null) {
+            return null;
+        }
+        cn.bugstack.domain.award.model.entity.AwardEntity awardEntity = new cn.bugstack.domain.award.model.entity.AwardEntity();
+        awardEntity.setId(award.getId());
+        awardEntity.setAwardId(award.getAwardId());
+        awardEntity.setAwardKey(award.getAwardKey());
+        awardEntity.setAwardConfig(award.getAwardConfig());
+        awardEntity.setAwardDesc(award.getAwardDesc());
+        awardEntity.setCreateTime(award.getCreateTime());
+        awardEntity.setUpdateTime(award.getUpdateTime());
+        return awardEntity;
     }
 
 }

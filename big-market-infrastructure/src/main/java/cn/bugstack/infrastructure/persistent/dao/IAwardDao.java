@@ -2,17 +2,20 @@ package cn.bugstack.infrastructure.persistent.dao;
 
 import cn.bugstack.infrastructure.persistent.po.Award;
 import org.apache.ibatis.annotations.Mapper;
-
-import java.util.List;
+import org.apache.ibatis.annotations.Param;
 
 /**
- * @author Fuzhengwei bugstack.cn @小傅哥
- * @description 奖品表DAO
- * @create 2023-12-16 13:23
+ * @description 奖品DAO
+ * @create 2024-05-25 15:00
  */
 @Mapper
 public interface IAwardDao {
 
-    List<Award> queryAwardList();
+    /**
+     * 查询奖品信息
+     * @param awardId 奖品ID
+     * @return 奖品信息
+     */
+    Award queryAwardInfo(@Param("awardId") Integer awardId);
 
 }
